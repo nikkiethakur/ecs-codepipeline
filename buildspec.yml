@@ -17,7 +17,7 @@ phases:
       - echo Pushing the Docker image...
       - docker push 881490090991.dkr.ecr.ap-south-1.amazonaws.com/candid-fox-repo:latest
       - echo Writing image definitions file...
-      - printf '[{"name":"<ECS_CONTAINER_NAME>","imageUri":"%s"}]' 881490090991.dkr.ecr.ap-south-1.amazonaws.com/candid-fox-repo:latest > imagedefinitions.json
+      - printf '[{"name":"candid-fox-container","imageUri":"%s"}]' 881490090991.dkr.ecr.ap-south-1.amazonaws.com/candid-fox-repo:latest > imagedefinitions.json
 
 artifacts:
   files:
