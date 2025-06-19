@@ -1,0 +1,15 @@
+version: 0.2
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin <account>.dkr.ecr.<region>.amazonaws.com
+  build:
+    commands:
+      - docker build -t myapp .
+      - docker tag myapp:latest <your-repo>
+  post_build:
+    commands:
+      - docker push <your-repo>
+artifacts:
+  files: imagedefinitions.json
