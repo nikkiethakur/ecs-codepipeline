@@ -3,13 +3,13 @@ phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin <account>.dkr.ecr.<region>.amazonaws.com
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin 881490090991.dkr.ecr.ap-south-1.amazonaws.com
   build:
     commands:
-      - docker build -t myapp .
-      - docker tag myapp:latest <your-repo>
+      - docker build -t candid-fox-repo .
+      - docker tag candid-fox-repo:latest 881490090991.dkr.ecr.ap-south-1.amazonaws.com/candid-fox-repo:latest
   post_build:
     commands:
-      - docker push <your-repo>
+      - docker push 881490090991.dkr.ecr.ap-south-1.amazonaws.com/candid-fox-repo:latest
 artifacts:
   files: imagedefinitions.json
