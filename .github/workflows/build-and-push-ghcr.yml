@@ -43,3 +43,32 @@ jobs:
       - name: Print image info
         run: |
           echo "Pushed: ghcr.io/${{ github.repository_owner }}/ecs-codepipeline:${{ github.sha }}"
+
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+
+      - name: Login to Railway
+        env:
+          RAILWAY_API_KEY: ${{ secrets.RAILWAY_API_KEY }}
+        run: |
+          railway login --apiKey "${RAILWAY_API_KEY}"
+
+      - name: (Optional) Update Railway variables from GitHub Secrets
+        if: ${{ secrets.NAME || secrets.AGE || secrets.CITY || secrets.PHONE }}
+        run: |
+          # Replace service name if different
+          SERVICE="ecs-codepipeline"
+          if [ -n "${{ secrets.NAME }}" ];  then railway variables set NAME "${{ secrets.NAME }}" --service "$SERVICE"; fi
+          if [ -n "${{ secrets.AGE }}" ];   then railway variables set AGE  "${{ secrets.AGE }}"  --service "$SERVICE"; fi
+          if [ -n "${{ secrets.CITY }}" ];  then railway variables set CITY "${{ secrets.CITY }}" --service "$SERVICE"; fi
+          if [ -n "${{ secrets.PHONE }}" ]; then railway variables set PHONE "${{ secrets.PHONE }}" --service "$SERVICE"; fi
+
+      - name: Trigger Railway deploy (deploy specific image tag)
+        env:
+          IMAGE_BASE: ghcr.io/${{ github.repository_owner }}/ecs-codepipeline
+        run: |
+          SERVICE="ecs-codepipeline"   # replace if your service name is different
+          # Preferred: deploy exact SHA-tag (traceable)
+          railway deploy --service "$SERVICE" --image "${IMAGE_BASE}:${{ github.sha }}" || \
+          # Fallback: if deploy command differs for your CLI version, try railway up
+          railway up --detach || true
