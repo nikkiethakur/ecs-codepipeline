@@ -45,10 +45,11 @@ jobs:
       - name: Railway login
         env:
           RAILWAY_API_KEY: ${{ secrets.RAILWAY_API_KEY }}
-        run: railway login --apiKey "${RAILWAY_API_KEY}"
+        run: |
+          railway login --apiKey "${RAILWAY_API_KEY}"
 
       - name: Apply variables from secrets (optional)
-        if: ${{ secrets.NAME || secrets.AGE || secrets.CITY || secrets.PHONE }}
+        # Removed invalid GitHub 'if' expression; shell checks handle presence
         run: |
           SERVICE="${{ env.RAILWAY_SERVICE }}"
           if [ -n "${{ secrets.NAME }}" ];  then railway variables set NAME "${{ secrets.NAME }}" --service "$SERVICE"; fi
