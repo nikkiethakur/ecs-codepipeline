@@ -42,3 +42,28 @@ jobs:
       - name: Print image info
         run: |
           echo "Pushed: ghcr.io/${{ github.repository_owner }}/ecs-codepipeline:${{ github.sha }}"
+
+      - name: Install Railway CLI
+        run: curl -fsSL https://railway.app/install.sh | sh
+
+      - name: Login to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          ~/.railway/bin/railway login --token "$RAILWAY_TOKEN"
+
+      - name: Link Railway project
+        env:
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: |
+          ~/.railway/bin/railway link --project "$RAILWAY_PROJECT_ID"
+
+      - name: Trigger Railway deploy (restart)
+        env:
+          RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
+        run: |
+          ~/.railway/bin/railway up \
+            --service "$RAILWAY_SERVICE_ID" \
+            --detach \
+            --no-confirm
+
