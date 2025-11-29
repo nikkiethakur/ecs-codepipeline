@@ -39,8 +39,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          # IMPORTANT: ghcr paths must be lowercase. Most org/user names are already lowercase,
-          # but if yours isn't, replace ${{ github.repository_owner }} with the lowercase literal.
+          
           tags: |
             ghcr.io/nikkiethakur/railway-demo:latest
             ghcr.io/nikkiethakur/railway-demo:${{ github.sha }}
@@ -48,3 +47,25 @@ jobs:
       - name: Print image info
         run: |
           echo "Pushed: ghcr.io/nikkiethakur/railway-demo:${{ github.sha }}"
+
+  deploy-railway:
+      needs: build-and-push
+      runs-on: ubuntu-latest
+  
+      steps:
+        - name: Install Railway CLI
+          run: |
+            curl -fsSL https://railway.app/install.sh | bash
+            echo "$HOME/.railway/bin" >> $GITHUB_PATH
+  
+        - name: Trigger redeploy on Railway
+          env:
+            RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+            RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+            RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
+          run: |
+            railway --version
+            railway up \
+              --project "$RAILWAY_PROJECT_ID" \
+              --service "$RAILWAY_SERVICE_ID" \
+              --detach
