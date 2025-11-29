@@ -54,21 +54,22 @@ jobs:
         run: |
           curl -fsSL https://railway.app/install.sh | bash
           echo "$HOME/.railway/bin" >> "$GITHUB_PATH"
-
-      - name: Login to Railway (non-interactive)
+  
+      # Auth by dropping the token into ~/.railway/config.json
+      - name: Authenticate to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
+          mkdir -p "$HOME/.railway"
+          printf '{"token":"%s"}' "$RAILWAY_TOKEN" > "$HOME/.railway/config.json"
           railway --version
-          railway login --token "$RAILWAY_TOKEN"
-
+          railway whoami || true   # sanity check (won't fail the job)
+  
       - name: Link Railway project
         env:
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
         run: railway link --project "$RAILWAY_PROJECT_ID"
-
-      # If you want to target a specific service, add --service "$RAILWAY_SERVICE_ID"
+  
+      # If you want to target a specific service, also add: --service "$RAILWAY_SERVICE_ID"
       - name: Trigger redeploy on Railway
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: railway up --detach
