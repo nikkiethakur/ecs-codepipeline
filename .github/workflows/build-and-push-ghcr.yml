@@ -65,7 +65,7 @@ jobs:
             RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
           run: |
             railway --version
-            railway up \
+            railway up . -- \
               --project "$RAILWAY_PROJECT_ID" \
               --service "$RAILWAY_SERVICE_ID" \
               --detach
