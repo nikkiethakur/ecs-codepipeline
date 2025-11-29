@@ -10,12 +10,11 @@ permissions:
   id-token: write
 
 env:
-  IMAGE_NAME: railway-demo   # <-- change if you want
+  IMAGE_NAME: railway-demo
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -39,35 +38,37 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          
           tags: |
             ghcr.io/nikkiethakur/railway-demo:latest
             ghcr.io/nikkiethakur/railway-demo:${{ github.sha }}
 
       - name: Print image info
-        run: |
+        run: | 
           echo "Pushed: ghcr.io/nikkiethakur/railway-demo:${{ github.sha }}"
 
   deploy-railway:
     needs: build-and-push
     runs-on: ubuntu-latest
-  
     steps:
       - name: Install Railway CLI
         run: |
           curl -fsSL https://railway.app/install.sh | bash
-          echo "$HOME/.railway/bin" >> $GITHUB_PATH
-  
-      - name: Link Railway project
+          echo "$HOME/.railway/bin" >> "$GITHUB_PATH"
+
+      - name: Login to Railway (non-interactive)
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
         run: |
           railway --version
-          railway link --project $RAILWAY_PROJECT_ID
-  
+          railway login --token "$RAILWAY_TOKEN"
+
+      - name: Link Railway project
+        env:
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: railway link --project "$RAILWAY_PROJECT_ID"
+
+      # If you want to target a specific service, add --service "$RAILWAY_SERVICE_ID"
       - name: Trigger redeploy on Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          railway up --detach
+        run: railway up --detach
