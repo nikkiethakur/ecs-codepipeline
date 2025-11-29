@@ -49,27 +49,32 @@ jobs:
   deploy-railway:
     needs: build-and-push
     runs-on: ubuntu-latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+      # RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}   # optional
+  
     steps:
       - name: Install Railway CLI
         run: |
           curl -fsSL https://railway.app/install.sh | bash
           echo "$HOME/.railway/bin" >> "$GITHUB_PATH"
   
-      # Auth by dropping the token into ~/.railway/config.json
-      - name: Authenticate to Railway
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      - name: Authenticate to Railway (write token to both config paths)
         run: |
-          mkdir -p "$HOME/.railway"
+          set -e
+          mkdir -p "$HOME/.railway" "$HOME/.config/railway"
+          # Write a minimal valid JSON config containing the token
           printf '{"token":"%s"}' "$RAILWAY_TOKEN" > "$HOME/.railway/config.json"
+          cp "$HOME/.railway/config.json" "$HOME/.config/railway/config.json"
           railway --version
-          railway whoami || true   # sanity check (won't fail the job)
+          # Sanity check (will exit non-zero if not authenticated)
+          railway whoami
   
       - name: Link Railway project
-        env:
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
         run: railway link --project "$RAILWAY_PROJECT_ID"
   
-      # If you want to target a specific service, also add: --service "$RAILWAY_SERVICE_ID"
       - name: Trigger redeploy on Railway
-        run: railway up --detach
+        run: |
+          # If you need a specific service, add: --service "$RAILWAY_SERVICE_ID"
+          railway up --detach
