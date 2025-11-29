@@ -49,23 +49,25 @@ jobs:
           echo "Pushed: ghcr.io/nikkiethakur/railway-demo:${{ github.sha }}"
 
   deploy-railway:
-      needs: build-and-push
-      runs-on: ubuntu-latest
+    needs: build-and-push
+    runs-on: ubuntu-latest
   
-      steps:
-        - name: Install Railway CLI
-          run: |
-            curl -fsSL https://railway.app/install.sh | bash
-            echo "$HOME/.railway/bin" >> $GITHUB_PATH
+    steps:
+      - name: Install Railway CLI
+        run: |
+          curl -fsSL https://railway.app/install.sh | bash
+          echo "$HOME/.railway/bin" >> $GITHUB_PATH
   
-        - name: Trigger redeploy on Railway
-          env:
-            RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-            RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-            RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
-          run: |
-            railway --version
-            railway up . -- \
-              --project "$RAILWAY_PROJECT_ID" \
-              --service "$RAILWAY_SERVICE_ID" \
-              --detach
+      - name: Link Railway project
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: |
+          railway --version
+          railway link --project $RAILWAY_PROJECT_ID
+  
+      - name: Trigger redeploy on Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          railway up --detach
