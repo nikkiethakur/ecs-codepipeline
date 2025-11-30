@@ -46,35 +46,14 @@ jobs:
         run: | 
           echo "Pushed: ghcr.io/nikkiethakur/railway-demo:${{ github.sha }}"
 
-  deploy-railway:
+  deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
+    container: ghcr.io/railwayapp/cli:latest
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-      # RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}   # optional
-  
     steps:
-      - name: Install Railway CLI
+      - uses: actions/checkout@v4
+      - name: Redeploy Railway service
         run: |
-          curl -fsSL https://railway.app/install.sh | bash
-          echo "$HOME/.railway/bin" >> "$GITHUB_PATH"
-  
-      - name: Authenticate to Railway (write token to both config paths)
-        run: |
-          set -e
-          mkdir -p "$HOME/.railway" "$HOME/.config/railway"
-          # Write a minimal valid JSON config containing the token
-          printf '{"token":"%s"}' "$RAILWAY_TOKEN" > "$HOME/.railway/config.json"
-          cp "$HOME/.railway/config.json" "$HOME/.config/railway/config.json"
-          railway --version
-          # Sanity check (will exit non-zero if not authenticated)
-          railway whoami
-  
-      - name: Link Railway project
-        run: railway link --project "$RAILWAY_PROJECT_ID"
-  
-      - name: Trigger redeploy on Railway
-        run: |
-          # If you need a specific service, add: --service "$RAILWAY_SERVICE_ID"
-          railway up --detach
+          railway redeploy --service=f06cb929-50fb-4eb5-8ecb-803f39188844
