@@ -56,4 +56,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Redeploy Railway service
         run: |
-          railway redeploy --service=f06cb929-50fb-4eb5-8ecb-803f39188844
+           railway redeploy --service=f06cb929-50fb-4eb5-8ecb-803f39188844 --ci --yes
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
